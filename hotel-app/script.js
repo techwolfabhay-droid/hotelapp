@@ -181,7 +181,7 @@ function getFiltered(search, fDate, fMonth) {
   const q = (search||'').toLowerCase();
   return myBookings().filter(b => {
     const ms = !q || b.name.toLowerCase().includes(q) || b.contact.includes(q) || b.checkIn.includes(q) || b.checkOut.includes(q);
-    const md = !fDate  || (b.checkIn<=fDate && b.checkOut>=fDate) || b.checkIn===fDate || b.checkOut===fDate;
+    const md = !fDate || b.checkIn === fDate;
     const mm = !fMonth || b.checkIn.startsWith(fMonth) || b.checkOut.startsWith(fMonth);
     return ms && md && mm;
   });
