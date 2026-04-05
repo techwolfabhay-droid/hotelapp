@@ -21,12 +21,10 @@
       <h1>Hotel Manager</h1>
       <p>Booking System Pro</p>
     </div>
-
     <div class="tab-toggle">
       <button class="toggle-btn active" id="loginToggle" onclick="switchAuthMode('login')">🔑 Login</button>
       <button class="toggle-btn" id="registerToggle" onclick="switchAuthMode('register')">📝 Register</button>
     </div>
-
     <div id="hotelNameWrap" class="input-group hidden">
       <label>Hotel Name 🏨</label>
       <input type="text" id="hotelName" placeholder="e.g. Highway Memories"/>
@@ -40,7 +38,6 @@
       <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password"/>
       <button class="pw-eye" onclick="togglePw()">👁️</button>
     </div>
-
     <div id="authError" class="error-box hidden"></div>
     <button class="btn-gold full" id="authSubmit" onclick="handleAuth()">Login →</button>
   </div>
@@ -49,7 +46,6 @@
 <!-- ═══════════════════ MAIN APP ═══════════════════ -->
 <div id="appScreen" class="screen">
 
-  <!-- Top Bar -->
   <header class="top-bar">
     <div class="hotel-info">
       <span class="hotel-emoji">🏨</span>
@@ -61,16 +57,13 @@
     <button class="logout-btn" onclick="logout()">Logout</button>
   </header>
 
-  <!-- Flash Toast -->
   <div id="toast" class="toast hidden"></div>
 
-  <!-- Content Area -->
   <main class="content" id="mainContent">
 
-    <!-- ── NEW BOOKING ── -->
+    <!-- NEW BOOKING -->
     <section id="tabNew" class="tab-content active">
       <h2 class="page-title">New Booking</h2>
-
       <div class="input-group">
         <label>👤 Guest Name *</label>
         <input type="text" id="guestName" placeholder="e.g. Ramesh Kumar"/>
@@ -79,7 +72,6 @@
         <label>📞 Contact Number *</label>
         <input type="tel" id="guestContact" placeholder="9876543210"/>
       </div>
-
       <div class="input-group">
         <label>🛏 Number of Rooms</label>
         <div class="room-counter">
@@ -88,7 +80,6 @@
           <button class="room-btn" onclick="changeRooms(1)">+</button>
         </div>
       </div>
-
       <div class="date-row">
         <div class="input-group">
           <label>📅 Check-In *</label>
@@ -99,26 +90,21 @@
           <input type="date" id="checkOut" onchange="calcNights()"/>
         </div>
       </div>
-
       <div id="nightsBadge" class="nights-badge hidden"></div>
-
       <div class="input-group">
         <label>📝 Notes / Special Requests</label>
         <textarea id="guestNotes" placeholder="Room preferences, early check-in, meal plan, etc." rows="3"></textarea>
       </div>
-
       <button class="btn-gold full" onclick="saveBooking()">💾 Save Booking</button>
     </section>
 
-    <!-- ── RECORDS ── -->
+    <!-- RECORDS -->
     <section id="tabRecords" class="tab-content">
       <h2 class="page-title">Booking Records</h2>
-
       <div class="search-box">
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Name, contact ya date se search..." oninput="renderRecords()"/>
       </div>
-
       <div class="filter-row">
         <div class="input-group">
           <label style="font-size:10px">📅 Date Filter</label>
@@ -129,22 +115,19 @@
           <input type="month" id="filterMonth" onchange="filterByMonth()"/>
         </div>
       </div>
-
       <div class="records-meta" id="recordsMeta">
         <span id="recordsCount">0 bookings</span>
         <div class="meta-btns">
           <button class="btn-ghost small hidden" id="clearFilterBtn" onclick="clearFilters()">Clear ✕</button>
-          <button class="btn-gold small hidden" id="exportBtn" onclick="showReportScreen()">📄 Report Dekho</button>
+          <button class="btn-gold small hidden" id="exportBtn" onclick="showReportScreen()">📄 Report</button>
         </div>
       </div>
-
       <div id="recordsList"></div>
     </section>
 
-    <!-- ── REPORT ── -->
+    <!-- REPORT -->
     <section id="tabReport" class="tab-content">
       <h2 class="page-title">Generate Report</h2>
-
       <div class="report-filter-card">
         <p class="filter-hint">Filter karke report download karo:</p>
         <div class="filter-row">
@@ -157,96 +140,61 @@
             <input type="month" id="reportMonth" onchange="syncReportFilter('month')"/>
           </div>
         </div>
-        <button class="btn-ghost small" onclick="clearReportFilter()" id="clearReportBtn" style="width:100%;margin-bottom:0">Clear Filter</button>
+        <button class="btn-ghost small" onclick="clearReportFilter()" style="width:100%;margin-bottom:0">Clear Filter</button>
       </div>
-
-      <!-- Stats -->
-      <div class="stats-grid" id="statsGrid">
-        <div class="stat-card">
-          <div class="stat-icon">📋</div>
-          <div class="stat-num" id="statBookings">0</div>
-          <div class="stat-label">Bookings</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🛏</div>
-          <div class="stat-num" id="statRooms">0</div>
-          <div class="stat-label">Rooms</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🌙</div>
-          <div class="stat-num" id="statNights">0</div>
-          <div class="stat-label">Nights</div>
-        </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-num" id="statBookings">0</div><div class="stat-label">Bookings</div></div>
+        <div class="stat-card"><div class="stat-icon">🛏</div><div class="stat-num" id="statRooms">0</div><div class="stat-label">Rooms</div></div>
+        <div class="stat-card"><div class="stat-icon">🌙</div><div class="stat-num" id="statNights">0</div><div class="stat-label">Nights</div></div>
       </div>
-
-      <button class="btn-gold full" id="downloadReportBtn" onclick="showReportScreen()">📄 Report Dekho &amp; Print karo</button>
-      <p id="reportHint" class="report-hint">Koi record nahi mila is filter ke liye</p>
+      <button class="btn-gold full" id="downloadReportBtn" onclick="showReportScreen()">📄 Report Dekho &amp; Download</button>
+      <p id="reportHint" class="report-hint">Koi record nahi mila</p>
       <div id="reportPreview"></div>
     </section>
 
   </main>
 
-  <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <button class="nav-btn active" id="navNew" onclick="switchTab('new')">
-      <span class="nav-icon">➕</span>
-      <span class="nav-label">New</span>
-      <div class="nav-dot"></div>
+      <span class="nav-icon">➕</span><span class="nav-label">New</span><div class="nav-dot"></div>
     </button>
     <button class="nav-btn" id="navRecords" onclick="switchTab('records')">
-      <span class="nav-icon">📋</span>
-      <span class="nav-label">Records</span>
-      <div class="nav-dot"></div>
+      <span class="nav-icon">📋</span><span class="nav-label">Records</span><div class="nav-dot"></div>
     </button>
     <button class="nav-btn" id="navReport" onclick="switchTab('report')">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Report</span>
-      <div class="nav-dot"></div>
+      <span class="nav-icon">📊</span><span class="nav-label">Report</span><div class="nav-dot"></div>
     </button>
   </nav>
-
 </div>
 
-<!-- ── REPORT FULLSCREEN OVERLAY ── -->
-<div id="reportOverlay" style="
-  display:none; position:fixed; inset:0; z-index:999;
-  background:#fff; overflow-y:auto;
-  font-family:Arial,sans-serif; font-size:12px;
-">
-  <!-- Sticky top bar -->
-  <div id="reportTopBar" style="
-    position:sticky; top:0; z-index:10;
-    background:#0f0f2a; padding:10px 12px;
-    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  ">
-    <button onclick="closeReportScreen()" style="
-      background:transparent; border:1px solid #444; color:#aaa;
-      padding:7px 12px; border-radius:6px; cursor:pointer; font-size:12px; flex-shrink:0;
-    ">← Wapas</button>
-    <span style="color:#f0c040;font-weight:700;font-size:12px;flex:1;text-align:center" id="reportOverlayTitle">Report</span>
-    <button onclick="shareReport()" style="
-      background:#25D366; border:none; color:#fff;
-      padding:8px 12px; border-radius:6px; cursor:pointer;
-      font-size:12px; font-weight:700; flex-shrink:0;
-    ">📤 Share</button>
-    <button onclick="printReport()" style="
-      background:#f0c040; border:none; color:#111;
-      padding:8px 12px; border-radius:6px; cursor:pointer;
-      font-size:12px; font-weight:700; flex-shrink:0;
-    ">🖨️ Print</button>
+<!-- REPORT FULLSCREEN OVERLAY -->
+<div id="reportOverlay" style="display:none;position:fixed;inset:0;z-index:999;background:#fff;overflow-y:auto;font-family:Arial,sans-serif;font-size:12px;">
+
+  <!-- Top bar -->
+  <div id="reportTopBar" style="position:sticky;top:0;z-index:10;background:#0f0f2a;padding:10px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <button onclick="closeReportScreen()" style="background:transparent;border:1px solid #444;color:#aaa;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0;">← Wapas</button>
+    <span style="color:#f0c040;font-weight:700;font-size:12px;flex:1;text-align:center;" id="reportOverlayTitle">Report</span>
+    <button onclick="shareReport()" style="background:#25D366;border:none;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;flex-shrink:0;">📤 Share</button>
+    <button onclick="downloadPDF()" style="background:#f0c040;border:none;color:#111;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;flex-shrink:0;">📥 PDF Download</button>
   </div>
 
-  <!-- Report Content -->
+  <!-- PDF Loading overlay -->
+  <div id="pdfLoading" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+    <div style="font-size:44px;">⏳</div>
+    <div style="color:#f0c040;font-size:16px;font-weight:700;font-family:Arial;">PDF ban rahi hai...</div>
+    <div style="color:#888;font-size:12px;font-family:Arial;">Thoda wait karo 🙏</div>
+  </div>
+
   <div id="reportOverlayBody" style="padding:16px;"></div>
 </div>
 
 <style>
 @media print {
-  body > * { display: none !important; }
-  #reportOverlay { display: block !important; position: static !important; }
-  #reportTopBar  { display: none !important; }
-  #reportOverlayBody { padding: 0 !important; }
-  @page { size: A4 landscape; margin: 10mm; }
+  body > * { display:none !important; }
+  #reportOverlay { display:block !important; position:static !important; }
+  #reportTopBar, #pdfLoading { display:none !important; }
+  #reportOverlayBody { padding:0 !important; }
+  @page { size:A4 landscape; margin:10mm; }
 }
 </style>
 
