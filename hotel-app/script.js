@@ -1,4 +1,3 @@
-
 /* ═══════════════════════════════════════════════════════════
    HOTEL MANAGER — script.js
    localStorage powered | APK / WebView Ready
@@ -306,7 +305,6 @@ function syncReportFilter(type) {
     recFDate  = '';
     $('reportDate').value = '';
   }
-  // Also sync records tab filters
   $('filterDate').value  = recFDate;
   $('filterMonth').value = recFMonth;
   updateReportStats();
@@ -328,7 +326,6 @@ function clearReportFilter() {
 
 function updateReportStats() {
   const filtered = getFiltered('', recFDate, recFMonth);
-  const total    = myBookings().length;
 
   $('statBookings').textContent = filtered.length;
   $('statRooms').textContent    = filtered.reduce((a, b) => a + Number(b.rooms), 0);
@@ -339,7 +336,6 @@ function updateReportStats() {
   $('downloadReportBtn').style.opacity = noData ? '0.4' : '1';
   $('reportHint').style.display = noData ? 'block' : 'none';
 
-  // Preview
   const preview = $('reportPreview');
   if (filtered.length > 0) {
     preview.innerHTML = `<h3>Preview (${filtered.length} records):</h3>` +
@@ -349,76 +345,212 @@ function updateReportStats() {
   }
 }
 
-// ── Export / Download SVG ──────────────────────────────────
-function exportReport() {
+// ── Build HTML Report String ───────────────────────────────
+function buildReportHTML() {
+  const filtered = getFiltered(recSearch, recFDate, recFMonth);
+  const hotelName   = currentUser?.hotelName || 'Hotel';
+  const label       = recFMonth
+    ? `Month: ${recFMonth}`
+    : recFDate
+    ? `Date: ${fmtDate(recFDate)}`
+    : 'All Bookings';
+  const totalRooms  = filtered.reduce((a, b) => a + Number(b.rooms), 0);
+  const totalNights = filtered.reduce((a, b) => a + nights(b.checkIn, b.checkOut), 0);
+  const generated   = new Date().toLocaleString('en-IN');
+
+  const rows = filtered.map((b, i) => {
+    const n = nights(b.checkIn, b.checkOut);
+    return `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${escHtml(b.name)}</td>
+      <td>${escHtml(b.contact)}</td>
+      <td>${b.rooms}</td>
+      <td>${fmtDate(b.checkIn)}</td>
+      <td>${fmtDate(b.checkOut)}</td>
+      <td>${n}</td>
+      <td>${escHtml(b.notes || '—')}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div style="font-family:Arial,sans-serif;color:#111;max-width:900px;margin:0 auto;">
+    <div style="background:linear-gradient(135deg,#0f0f2a,#1a0d35);color:#f0c040;padding:24px 20px;border-radius:8px 8px 0 0;text-align:center;">
+      <div style="font-size:32px;margin-bottom:8px;">🏨</div>
+      <div style="font-size:20px;font-weight:700;font-family:Georgia,serif;letter-spacing:1px;">${escHtml(hotelName)}</div>
+      <div style="font-size:13px;color:#c0a030;margin-top:4px;">Booking Report — ${escHtml(label)}</div>
+      <div style="font-size:11px;color:#807050;margin-top:6px;">Generated: ${generated}</div>
+    </div>
+
+    <div style="display:flex;gap:0;background:#f5f5f5;border:1px solid #ddd;border-top:none;">
+      <div style="flex:1;text-align:center;padding:14px 10px;border-right:1px solid #ddd;">
+        <div style="font-size:26px;font-weight:700;color:#0f0f2a;font-family:Georgia,serif;">${filtered.length}</div>
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Bookings</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:14px 10px;border-right:1px solid #ddd;">
+        <div style="font-size:26px;font-weight:700;color:#1a5fa0;font-family:Georgia,serif;">${totalRooms}</div>
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Rooms</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:14px 10px;">
+        <div style="font-size:26px;font-weight:700;color:#6a1a8a;font-family:Georgia,serif;">${totalNights}</div>
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Nights</div>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:600px;">
+        <thead>
+          <tr style="background:#0f0f2a;color:#f0c040;">
+            <th style="padding:10px 8px;text-align:left;font-weight:700;">#</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:700;">Guest Name</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:700;">Contact</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:700;">Rooms</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:700;">Check-In</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:700;">Check-Out</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:700;">Nights</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:700;">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map((b, i) => {
+            const n = nights(b.checkIn, b.checkOut);
+            return `<tr style="background:${i % 2 === 0 ? '#fff' : '#f9f9f9'};border-bottom:1px solid #eee;">
+              <td style="padding:9px 8px;color:#888;">${i+1}</td>
+              <td style="padding:9px 8px;font-weight:600;">${escHtml(b.name)}</td>
+              <td style="padding:9px 8px;">${escHtml(b.contact)}</td>
+              <td style="padding:9px 8px;text-align:center;">${b.rooms}</td>
+              <td style="padding:9px 8px;">${fmtDate(b.checkIn)}</td>
+              <td style="padding:9px 8px;">${fmtDate(b.checkOut)}</td>
+              <td style="padding:9px 8px;text-align:center;">${n}</td>
+              <td style="padding:9px 8px;color:#666;font-size:12px;">${escHtml(b.notes || '—')}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:#f0f0f0;font-weight:700;border-top:2px solid #ddd;">
+            <td colspan="3" style="padding:10px 8px;color:#555;">TOTAL</td>
+            <td style="padding:10px 8px;text-align:center;">${totalRooms}</td>
+            <td colspan="2"></td>
+            <td style="padding:10px 8px;text-align:center;">${totalNights}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div style="text-align:center;padding:12px;color:#aaa;font-size:11px;margin-top:8px;">
+      Hotel Management System · ${escHtml(hotelName)}
+    </div>
+  </div>`;
+}
+
+// ── Show Report Fullscreen ─────────────────────────────────
+function showReportScreen() {
   const filtered = getFiltered(recSearch, recFDate, recFMonth);
   if (filtered.length === 0) return flash('Koi record nahi mila!', false);
 
+  const hotelName = currentUser?.hotelName || 'Hotel';
   const label = recFMonth
     ? `Month: ${recFMonth}`
     : recFDate
     ? `Date: ${fmtDate(recFDate)}`
     : 'All Bookings';
 
-  const cols = ['#','Guest Name','Contact','Rooms','Check-In','Check-Out','Nights','Notes'];
-  const colW = [28, 110, 90, 48, 80, 80, 48, 130];
-  const W    = colW.reduce((a, b) => a + b, 0);
-  const RH = 22, HH = 80, TH = 30;
-  const H  = HH + TH + filtered.length * RH + 50;
+  $('reportOverlayTitle').textContent = `${hotelName} — ${label}`;
+  $('reportOverlayBody').innerHTML    = buildReportHTML();
+  $('reportOverlay').style.display    = 'block';
+  document.body.style.overflow        = 'hidden';
+}
 
-  let hds = '', trs = '';
-  cols.forEach((c, j) => {
-    const x = colW.slice(0, j).reduce((a, b) => a + b, 0) + 6;
-    hds += `<text x="${x}" y="${HH + 20}" font-family="monospace" font-size="10" font-weight="bold" fill="#f0c040">${c}</text>`;
-  });
+function closeReportScreen() {
+  $('reportOverlay').style.display = 'none';
+  document.body.style.overflow     = '';
+}
 
-  filtered.forEach((b, i) => {
-    const y   = HH + TH + i * RH;
-    const row = [i+1, b.name, b.contact, b.rooms, fmtDate(b.checkIn), fmtDate(b.checkOut), nights(b.checkIn, b.checkOut), b.notes || '-'];
-    trs += `<rect x="0" y="${y}" width="${W}" height="${RH}" fill="${i % 2 === 0 ? '#1a1a2e' : '#16213e'}"/>`;
-    row.forEach((cell, j) => {
-      const x   = colW.slice(0, j).reduce((a, b) => a + b, 0) + 6;
-      const max = Math.floor(colW[j] / 5.8);
-      const txt = String(cell).substring(0, max);
-      trs += `<text x="${x}" y="${y + 15}" font-family="monospace" font-size="9.5" fill="#dde">${txt}</text>`;
-    });
-    trs += `<line x1="0" y1="${y + RH}" x2="${W}" y2="${y + RH}" stroke="#2a2a4a" stroke-width="0.4"/>`;
-  });
+// ── Print Report ───────────────────────────────────────────
+function printReport() {
+  window.print();
+}
 
-  const hotelName = currentUser?.hotelName || 'Hotel';
+// ── Share Report (APK + Browser compatible) ────────────────
+function shareReport() {
+  const filtered = getFiltered(recSearch, recFDate, recFMonth);
+  if (filtered.length === 0) return flash('Koi record nahi mila!', false);
+
+  const hotelName   = currentUser?.hotelName || 'Hotel';
+  const label       = recFMonth
+    ? `Month: ${recFMonth}`
+    : recFDate
+    ? `Date: ${fmtDate(recFDate)}`
+    : 'Sabhi Bookings';
   const totalRooms  = filtered.reduce((a, b) => a + Number(b.rooms), 0);
   const totalNights = filtered.reduce((a, b) => a + nights(b.checkIn, b.checkOut), 0);
 
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-<rect width="${W}" height="${H}" fill="#0f0f23"/>
-<defs>
-  <linearGradient id="hg" x1="0" y1="0" x2="${W}" y2="0">
-    <stop offset="0%" stop-color="#12124a"/>
-    <stop offset="100%" stop-color="#1a0d35"/>
-  </linearGradient>
-</defs>
-<rect width="${W}" height="${HH}" fill="url(#hg)"/>
-<text x="${W/2}" y="22" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#f0c040" font-weight="bold">🏨 ${hotelName} — Booking Report</text>
-<text x="${W/2}" y="40" text-anchor="middle" font-family="monospace" font-size="11" fill="#a0a0c0">${label}</text>
-<text x="${W/2}" y="56" text-anchor="middle" font-family="monospace" font-size="9" fill="#606080">Generated: ${new Date().toLocaleString('en-IN')} | Bookings: ${filtered.length} | Rooms: ${totalRooms} | Nights: ${totalNights}</text>
-<rect x="0" y="${HH}" width="${W}" height="${TH}" fill="#0a0a1f"/>
-${hds}
-<line x1="0" y1="${HH + TH}" x2="${W}" y2="${HH + TH}" stroke="#f0c040" stroke-width="1.5"/>
-${trs}
-<rect x="0" y="${HH + TH + filtered.length * RH}" width="${W}" height="50" fill="#0a0a1a"/>
-<line x1="0" y1="${HH + TH + filtered.length * RH}" x2="${W}" y2="${HH + TH + filtered.length * RH}" stroke="#2a2a4a" stroke-width="1"/>
-<text x="${W/2}" y="${HH + TH + filtered.length * RH + 22}" text-anchor="middle" font-family="monospace" font-size="9" fill="#505070">Total Records: ${filtered.length} | Total Rooms: ${totalRooms} | Total Nights: ${totalNights}</text>
-<text x="${W/2}" y="${HH + TH + filtered.length * RH + 38}" text-anchor="middle" font-family="monospace" font-size="8" fill="#404060">Hotel Management System | ${hotelName}</text>
-</svg>`;
+  // Plain-text report for WhatsApp / share
+  const lines = [
+    `🏨 *${hotelName} — Booking Report*`,
+    `📋 Filter: ${label}`,
+    `📅 Generated: ${new Date().toLocaleString('en-IN')}`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    ...filtered.map((b, i) => {
+      const n = nights(b.checkIn, b.checkOut);
+      return [
+        ``,
+        `*${i+1}. ${b.name}*`,
+        `📞 ${b.contact}`,
+        `📅 ${fmtDate(b.checkIn)} → ${fmtDate(b.checkOut)}`,
+        `🛏 ${b.rooms} Room(s) · 🌙 ${n} Night(s)`,
+        b.notes ? `📝 ${b.notes}` : null
+      ].filter(Boolean).join('\n');
+    }),
+    ``,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `📊 *Summary*`,
+    `Total Bookings: ${filtered.length}`,
+    `Total Rooms: ${totalRooms}`,
+    `Total Nights: ${totalNights}`,
+  ].join('\n');
 
-  const fname = `booking-report-${recFMonth || recFDate || 'all'}-${Date.now()}.svg`;
-  const blob  = new Blob([svg], { type: 'image/svg+xml' });
-  const url   = URL.createObjectURL(blob);
-  const a     = document.createElement('a');
-  a.href = url; a.download = fname; a.click();
-  URL.revokeObjectURL(url);
-  flash('✅ Report download ho rahi hai!');
+  // Try Web Share API first (Android Chrome, modern browsers)
+  if (navigator.share) {
+    navigator.share({
+      title: `${hotelName} Booking Report`,
+      text:  lines,
+    }).catch(() => {
+      // User cancelled — no error needed
+    });
+    return;
+  }
+
+  // Fallback: WhatsApp direct link (works in APK WebView too)
+  const encoded = encodeURIComponent(lines);
+  const waUrl   = `https://wa.me/?text=${encoded}`;
+
+  // Try opening WhatsApp
+  const win = window.open(waUrl, '_blank');
+  if (!win) {
+    // Last resort: copy to clipboard
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(lines).then(() => {
+        flash('📋 Report clipboard mein copy ho gayi! Paste karo jahan chahiye.', true);
+      });
+    } else {
+      // Very old WebView fallback
+      const ta = document.createElement('textarea');
+      ta.value = lines;
+      ta.style.position = 'fixed';
+      ta.style.opacity  = '0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      try {
+        document.execCommand('copy');
+        flash('📋 Report copy ho gayi!', true);
+      } catch {
+        flash('❌ Share nahi ho saka. Screenshot lo!', false);
+      }
+      document.body.removeChild(ta);
+    }
+  }
 }
 
 // ── Enter key on auth ──────────────────────────────────────
@@ -430,3 +562,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') $('authPassword')?.focus();
   });
 });
+
