@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#080818"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>Hotel Manager</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ═══════════════════ AUTH SCREEN ═══════════════════ -->
+<div id="authScreen" class="screen active">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="logo-icon">🏨</div>
+      <h1>Hotel Manager</h1>
+      <p>Booking System Pro</p>
+    </div>
+
+    <div class="tab-toggle">
+      <button class="toggle-btn active" id="loginToggle" onclick="switchAuthMode('login')">🔑 Login</button>
+      <button class="toggle-btn" id="registerToggle" onclick="switchAuthMode('register')">📝 Register</button>
+    </div>
+
+    <div id="hotelNameWrap" class="input-group hidden">
+      <label>Hotel Name 🏨</label>
+      <input type="text" id="hotelName" placeholder="e.g. Highway Memories"/>
+    </div>
+    <div class="input-group">
+      <label>Username</label>
+      <input type="text" id="authUsername" placeholder="your_username" autocomplete="username"/>
+    </div>
+    <div class="input-group pw-wrap">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password"/>
+      <button class="pw-eye" onclick="togglePw()">👁️</button>
+    </div>
+
+    <div id="authError" class="error-box hidden"></div>
+    <button class="btn-gold full" id="authSubmit" onclick="handleAuth()">Login →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ MAIN APP ═══════════════════ -->
+<div id="appScreen" class="screen">
+
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="hotel-info">
+      <span class="hotel-emoji">🏨</span>
+      <div>
+        <div class="hotel-name" id="headerHotelName">Hotel</div>
+        <div class="hotel-sub">Booking System</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
+
+  <!-- Flash Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Content Area -->
+  <main class="content" id="mainContent">
+
+    <!-- ── NEW BOOKING ── -->
+    <section id="tabNew" class="tab-content active">
+      <h2 class="page-title">New Booking</h2>
+
+      <div class="input-group">
+        <label>👤 Guest Name *</label>
+        <input type="text" id="guestName" placeholder="e.g. Ramesh Kumar"/>
+      </div>
+      <div class="input-group">
+        <label>📞 Contact Number *</label>
+        <input type="tel" id="guestContact" placeholder="9876543210"/>
+      </div>
+
+      <div class="input-group">
+        <label>🛏 Number of Rooms</label>
+        <div class="room-counter">
+          <button class="room-btn" onclick="changeRooms(-1)">−</button>
+          <span id="roomCount">1</span>
+          <button class="room-btn" onclick="changeRooms(1)">+</button>
+        </div>
+      </div>
+
+      <div class="date-row">
+        <div class="input-group">
+          <label>📅 Check-In *</label>
+          <input type="date" id="checkIn" onchange="calcNights()"/>
+        </div>
+        <div class="input-group">
+          <label>📅 Check-Out *</label>
+          <input type="date" id="checkOut" onchange="calcNights()"/>
+        </div>
+      </div>
+
+      <div id="nightsBadge" class="nights-badge hidden"></div>
+
+      <div class="input-group">
+        <label>📝 Notes / Special Requests</label>
+        <textarea id="guestNotes" placeholder="Room preferences, early check-in, meal plan, etc." rows="3"></textarea>
+      </div>
+
+      <button class="btn-gold full" onclick="saveBooking()">💾 Save Booking</button>
+    </section>
+
+    <!-- ── RECORDS ── -->
+    <section id="tabRecords" class="tab-content">
+      <h2 class="page-title">Booking Records</h2>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Name, contact ya date se search..." oninput="renderRecords()"/>
+      </div>
+
+      <div class="filter-row">
+        <div class="input-group">
+          <label style="font-size:10px">📅 Date Filter</label>
+          <input type="date" id="filterDate" onchange="filterByDate()"/>
+        </div>
+        <div class="input-group">
+          <label style="font-size:10px">📆 Month Filter</label>
+          <input type="month" id="filterMonth" onchange="filterByMonth()"/>
+        </div>
+      </div>
+
+      <div class="records-meta" id="recordsMeta">
+        <span id="recordsCount">0 bookings</span>
+        <div class="meta-btns">
+          <button class="btn-ghost small hidden" id="clearFilterBtn" onclick="clearFilters()">Clear ✕</button>
+          <button class="btn-gold small hidden" id="exportBtn" onclick="exportReport()">⬇ PDF</button>
+          <button class="btn-ghost small hidden" id="exportSvgBtn" onclick="exportSVG()">⬇ SVG</button>
+        </div>
+      </div>
+
+      <div id="recordsList"></div>
+    </section>
+
+    <!-- ── REPORT ── -->
+    <section id="tabReport" class="tab-content">
+      <h2 class="page-title">Generate Report</h2>
+
+      <div class="report-filter-card">
+        <p class="filter-hint">Filter karke report download karo:</p>
+        <div class="filter-row">
+          <div class="input-group">
+            <label>📅 Specific Date</label>
+            <input type="date" id="reportDate" onchange="syncReportFilter('date')"/>
+          </div>
+          <div class="input-group">
+            <label>📆 Month</label>
+            <input type="month" id="reportMonth" onchange="syncReportFilter('month')"/>
+          </div>
+        </div>
+        <button class="btn-ghost small" onclick="clearReportFilter()" id="clearReportBtn" style="width:100%;margin-bottom:0">Clear Filter</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-icon">📋</div>
+          <div class="stat-num" id="statBookings">0</div>
+          <div class="stat-label">Bookings</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🛏</div>
+          <div class="stat-num" id="statRooms">0</div>
+          <div class="stat-label">Rooms</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🌙</div>
+          <div class="stat-num" id="statNights">0</div>
+          <div class="stat-label">Nights</div>
+        </div>
+      </div>
+
+      <button class="btn-gold full" id="downloadReportBtn" onclick="exportReport()">⬇ Download PDF Report</button>
+      <button class="btn-ghost full" id="downloadSvgBtn" onclick="exportSVG()" style="width:100%;margin-top:8px;padding:12px;">⬇ Download SVG (Offline/APK)</button>
+      <p id="reportHint" class="report-hint">Koi record nahi mila is filter ke liye</p>
+
+      <div id="reportPreview"></div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="navNew" onclick="switchTab('new')">
+      <span class="nav-icon">➕</span>
+      <span class="nav-label">New</span>
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-btn" id="navRecords" onclick="switchTab('records')">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Records</span>
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-btn" id="navReport" onclick="switchTab('report')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Report</span>
+      <div class="nav-dot"></div>
+    </button>
+  </nav>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
