@@ -216,20 +216,24 @@
   <!-- Sticky top bar -->
   <div id="reportTopBar" style="
     position:sticky; top:0; z-index:10;
-    background:#0f0f2a; padding:10px 14px;
-    display:flex; align-items:center; justify-content:space-between;
-    gap:10px;
+    background:#0f0f2a; padding:10px 12px;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
   ">
     <button onclick="closeReportScreen()" style="
       background:transparent; border:1px solid #444; color:#aaa;
-      padding:7px 14px; border-radius:6px; cursor:pointer; font-size:13px;
+      padding:7px 12px; border-radius:6px; cursor:pointer; font-size:12px; flex-shrink:0;
     ">← Wapas</button>
-    <span style="color:#f0c040; font-weight:700; font-size:13px;" id="reportOverlayTitle">Report</span>
-    <button onclick="window.print()" style="
+    <span style="color:#f0c040;font-weight:700;font-size:12px;flex:1;text-align:center" id="reportOverlayTitle">Report</span>
+    <button onclick="shareReport()" style="
+      background:#25D366; border:none; color:#fff;
+      padding:8px 12px; border-radius:6px; cursor:pointer;
+      font-size:12px; font-weight:700; flex-shrink:0;
+    ">📤 Share</button>
+    <button onclick="printReport()" style="
       background:#f0c040; border:none; color:#111;
-      padding:8px 16px; border-radius:6px; cursor:pointer;
-      font-size:13px; font-weight:700;
-    ">🖨️ Print / PDF</button>
+      padding:8px 12px; border-radius:6px; cursor:pointer;
+      font-size:12px; font-weight:700; flex-shrink:0;
+    ">🖨️ Print</button>
   </div>
 
   <!-- Report Content -->
