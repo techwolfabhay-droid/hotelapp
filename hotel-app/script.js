@@ -1,3 +1,4 @@
+
 /* ═══════════════════════════════════════════════════════════
    HOTEL MANAGER — script.js
    localStorage powered | APK / WebView Ready
