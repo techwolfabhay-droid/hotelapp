@@ -85,16 +85,16 @@ function handleAuth() {
 
   if (authMode === 'register') {
     if (!hotelName || !username || !password) return showErr('Sab fields bharein!');
-    if (password.length < 4) return showErr('Password kam se kam 4 characters!');
+    if (password.length < 4) return showErr('At least 4 character or number');
     const users = getUsers();
-    if (users.find(u => u.username === username)) return showErr('Username pehle se exist karta hai!');
+    if (users.find(u => u.username === username)) return showErr('Username already exist');
     const nu = { username, password, hotelName };
     saveUsers([...users, nu]);
     loginUser(nu);
   } else {
-    if (!username || !password) return showErr('Username aur password dono bharein!');
+    if (!username || !password) return showErr('Fill username and password');
     const user = getUsers().find(u => u.username === username && u.password === password);
-    if (!user) return showErr('Username ya password galat hai!');
+    if (!user) return showErr('Username or password is wrong');
     loginUser(user);
   }
 }
@@ -155,7 +155,7 @@ function saveBooking() {
   const co      = $('checkOut').value;
   const notes   = $('guestNotes').value.trim();
 
-  if (!name||!contact||!ci||!co) return flash('Name, contact aur dates zaroor bharein!', false);
+  if (!name||!contact||!ci||!co) return flash('Name, contact and date are mandatory', false);
   if (ci>=co) return flash('Checkout date check-in se baad honi chahiye!', false);
 
   saveBookings([...getBookings(), {
@@ -201,7 +201,7 @@ function renderRecords() {
   $('exportBtn').classList.toggle('hidden', filtered.length===0);
   const list = $('recordsList');
   if (filtered.length===0) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">${total===0?'Abhi koi booking nahi hai':'Koi booking nahi mili'}</div></div>`;
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">${total===0?'currently no booking':'No booking found'}</div></div>`;
     return;
   }
   list.innerHTML = filtered.map((b,i)=>buildCard(b,i+1)).join('');
@@ -236,9 +236,9 @@ function buildCard(b, idx) {
 function toggleCard(id) { const c=$('card_'+id); if(c) c.classList.toggle('open'); }
 
 function deleteBooking(id) {
-  if (!confirm('Ye booking delete karna chahte ho?')) return;
+  if (!confirm('want to delete booking?')) return;
   saveBookings(getBookings().filter(b=>b.id!==id));
-  flash('Booking delete ho gayi');
+  flash('Booking deleted');
   renderRecords(); updateReportStats();
 }
 
@@ -346,7 +346,7 @@ function buildReportHTML() {
 // ── Show Report Fullscreen ─────────────────────────────────
 function showReportScreen() {
   const filtered = getFiltered(recSearch, recFDate, recFMonth);
-  if (filtered.length===0) return flash('Koi record nahi mila!', false);
+  if (filtered.length===0) return flash('No record found', false);
   const hotelName = currentUser?.hotelName||'Hotel';
   const label     = recFMonth?`Month: ${recFMonth}`:recFDate?`Date: ${fmtDate(recFDate)}`:'All Bookings';
   $('reportOverlayTitle').textContent = `${hotelName} - ${label}`;
@@ -508,7 +508,7 @@ function generateHotelPDF(filtered) {
 // ── Download PDF button ────────────────────────────────────
 function downloadPDF() {
   const filtered = getFiltered(recSearch, recFDate, recFMonth);
-  if (!filtered.length) return flash('Koi record nahi mila!', false);
+  if (!filtered.length) return flash('No record found', false);
 
   const loading = $('pdfLoading');
   if (loading) loading.style.display='flex';
@@ -572,13 +572,13 @@ function shareReport() {
 
   const win=window.open(`https://wa.me/?text=${encodeURIComponent(lines)}`,'_blank');
   if (!win) {
-    if (navigator.clipboard) navigator.clipboard.writeText(lines).then(()=>flash('Report copy ho gayi!',true));
+    if (navigator.clipboard) navigator.clipboard.writeText(lines).then(()=>flash('Report copied',true));
     else {
       const ta=document.createElement('textarea');
       ta.value=lines; ta.style.cssText='position:fixed;opacity:0;';
       document.body.appendChild(ta); ta.focus(); ta.select();
-      try{document.execCommand('copy');flash('Report copy ho gayi!',true);}
-      catch{flash('Share nahi ho saka!',false);}
+      try{document.execCommand('copy');flash('Report copied',true);}
+      catch{flash('Share not accesable',false);}
       document.body.removeChild(ta);
     }
   }
