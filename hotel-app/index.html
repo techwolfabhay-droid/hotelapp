@@ -103,7 +103,7 @@
       <h2 class="page-title">Booking Records</h2>
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Name, contact ya date se search..." oninput="renderRecords()"/>
+        <input type="text" id="searchInput" placeholder="Name, search by contact and date" oninput="renderRecords()"/>
       </div>
       <div class="filter-row">
         <div class="input-group">
@@ -129,7 +129,7 @@
     <section id="tabReport" class="tab-content">
       <h2 class="page-title">Generate Report</h2>
       <div class="report-filter-card">
-        <p class="filter-hint">Filter karke report download karo:</p>
+        <p class="filter-hint">download report:</p>
         <div class="filter-row">
           <div class="input-group">
             <label>📅 Specific Date</label>
@@ -172,7 +172,7 @@
 
   <!-- Top bar -->
   <div id="reportTopBar" style="position:sticky;top:0;z-index:10;background:#0f0f2a;padding:10px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-    <button onclick="closeReportScreen()" style="background:transparent;border:1px solid #444;color:#aaa;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0;">← Wapas</button>
+    <button onclick="closeReportScreen()" style="background:transparent;border:1px solid #444;color:#aaa;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0;">← Back</button>
     <span style="color:#f0c040;font-weight:700;font-size:12px;flex:1;text-align:center;" id="reportOverlayTitle">Report</span>
     <button onclick="shareReport()" style="background:#25D366;border:none;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;flex-shrink:0;">📤 Share</button>
     <button onclick="downloadPDF()" style="background:#f0c040;border:none;color:#111;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;flex-shrink:0;">📥 PDF Download</button>
