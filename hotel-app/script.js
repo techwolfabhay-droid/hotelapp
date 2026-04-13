@@ -544,10 +544,10 @@ function downloadPDF() {
 // ── Share Report ───────────────────────────────────────────
 function shareReport() {
   const filtered = getFiltered(recSearch, recFDate, recFMonth);
-  if (!filtered.length) return flash('Koi record nahi mila!', false);
+  if (!filtered.length) return flash('No record', false);
 
   const hotelName   = currentUser?.hotelName||'Hotel';
-  const label       = recFMonth?`Month: ${recFMonth}`:recFDate?`Date: ${fmtDate(recFDate)}`:'Sabhi Bookings';
+  const label       = recFMonth?`Month: ${recFMonth}`:recFDate?`Date: ${fmtDate(recFDate)}`:'All bookings';
   const totalRooms  = filtered.reduce((a,b)=>a+Number(b.rooms),0);
   const totalNights = filtered.reduce((a,b)=>a+nights(b.checkIn,b.checkOut),0);
 
