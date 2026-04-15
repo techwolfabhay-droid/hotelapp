@@ -21,6 +21,7 @@
   --red:       #e06060;
   --blue:      #80c0f0;
   --purple:    #c0a0f0;
+  --teal:      #40d0c0;
   --font-head: 'Playfair Display', Georgia, serif;
   --font-body: 'DM Sans', system-ui, sans-serif;
   --radius:    12px;
@@ -431,6 +432,46 @@ body {
 }
 .filter-row .input-group { margin-bottom: 0; }
 
+/* ── Date Range Filter Card ── */
+.range-filter-card {
+  background: #0a0a20;
+  border: 1px solid #1a3050;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.range-label {
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.range-filter-card .filter-row { margin-bottom: 0; }
+
+/* ── Range Divider in Report tab ── */
+.range-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+.range-divider span {
+  color: var(--text4);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.range-divider::before,
+.range-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
 .records-meta {
   display: flex;
   align-items: center;
@@ -619,3 +660,4 @@ body {
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
