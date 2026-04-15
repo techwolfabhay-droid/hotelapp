@@ -103,11 +103,13 @@
       <h2 class="page-title">Booking Records</h2>
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Name, search by contact and date" oninput="renderRecords()"/>
+        <input type="text" id="searchInput" placeholder="Name, contact or date..." oninput="renderRecords()"/>
       </div>
+
+      <!-- Filter Row 1: Specific Date + Month -->
       <div class="filter-row">
         <div class="input-group">
-          <label style="font-size:10px">📅 Date Filter</label>
+          <label style="font-size:10px">📅 Specific Date</label>
           <input type="date" id="filterDate" onchange="filterByDate()"/>
         </div>
         <div class="input-group">
@@ -115,6 +117,22 @@
           <input type="month" id="filterMonth" onchange="filterByMonth()"/>
         </div>
       </div>
+
+      <!-- Filter Row 2: Date Range -->
+      <div class="range-filter-card">
+        <div class="range-label">📆 Date Range Filter</div>
+        <div class="filter-row">
+          <div class="input-group">
+            <label style="font-size:10px">From Date</label>
+            <input type="date" id="filterFrom" onchange="filterByRange()"/>
+          </div>
+          <div class="input-group">
+            <label style="font-size:10px">To Date</label>
+            <input type="date" id="filterTo" onchange="filterByRange()"/>
+          </div>
+        </div>
+      </div>
+
       <div class="records-meta" id="recordsMeta">
         <span id="recordsCount">0 bookings</span>
         <div class="meta-btns">
@@ -129,7 +147,9 @@
     <section id="tabReport" class="tab-content">
       <h2 class="page-title">Generate Report</h2>
       <div class="report-filter-card">
-        <p class="filter-hint">download report:</p>
+        <p class="filter-hint">Select filter to download report:</p>
+
+        <!-- Date & Month -->
         <div class="filter-row">
           <div class="input-group">
             <label>📅 Specific Date</label>
@@ -140,14 +160,31 @@
             <input type="month" id="reportMonth" onchange="syncReportFilter('month')"/>
           </div>
         </div>
+
+        <!-- Date Range — NEW -->
+        <div class="range-divider">
+          <span>— OR Date Range —</span>
+        </div>
+        <div class="filter-row">
+          <div class="input-group">
+            <label>📅 From Date</label>
+            <input type="date" id="reportFrom" onchange="syncReportFilter('range')"/>
+          </div>
+          <div class="input-group">
+            <label>📅 To Date</label>
+            <input type="date" id="reportTo" onchange="syncReportFilter('range')"/>
+          </div>
+        </div>
+
         <button class="btn-ghost small" onclick="clearReportFilter()" style="width:100%;margin-bottom:0">Clear Filter</button>
       </div>
+
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-num" id="statBookings">0</div><div class="stat-label">Bookings</div></div>
         <div class="stat-card"><div class="stat-icon">🛏</div><div class="stat-num" id="statRooms">0</div><div class="stat-label">Rooms</div></div>
         <div class="stat-card"><div class="stat-icon">🌙</div><div class="stat-num" id="statNights">0</div><div class="stat-label">Nights</div></div>
       </div>
-      <button class="btn-gold full" id="downloadReportBtn" onclick="showReportScreen()">📄 Report  &amp; Download</button>
+      <button class="btn-gold full" id="downloadReportBtn" onclick="showReportScreen()">📄 Report &amp; Download</button>
       <p id="reportHint" class="report-hint">No record found</p>
       <div id="reportPreview"></div>
     </section>
@@ -201,3 +238,4 @@
 <script src="script.js"></script>
 </body>
 </html>
+
