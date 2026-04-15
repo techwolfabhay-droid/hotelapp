@@ -10,9 +10,11 @@ let authMode    = 'login';
 let roomCount   = 1;
 let currentTab  = 'new';
 
-let recSearch = '';
-let recFDate  = '';
-let recFMonth = '';
+let recSearch  = '';
+let recFDate   = '';
+let recFMonth  = '';
+let recFFrom   = '';   // NEW: range start
+let recFTo     = '';   // NEW: range end
 
 // ── localStorage Helpers ───────────────────────────────────
 function getUsers()     { try { return JSON.parse(localStorage.getItem('hms_users')    || '[]'); } catch { return []; } }
@@ -177,27 +179,45 @@ function myBookings() {
 }
 
 // ── Filter Logic ───────────────────────────────────────────
-function getFiltered(search, fDate, fMonth) {
+function getFiltered(search, fDate, fMonth, fFrom, fTo) {
   const q = (search||'').toLowerCase();
   return myBookings().filter(b => {
     const ms = !q || b.name.toLowerCase().includes(q) || b.contact.includes(q) || b.checkIn.includes(q) || b.checkOut.includes(q);
-    const md = !fDate || b.checkIn === fDate;
+    const md = !fDate  || b.checkIn === fDate;
     const mm = !fMonth || b.checkIn.startsWith(fMonth) || b.checkOut.startsWith(fMonth);
-    return ms && md && mm;
+    // Range filter: booking checkIn falls within [fFrom, fTo]
+    const mr = (!fFrom && !fTo) ||
+               (fFrom && fTo   && b.checkIn >= fFrom && b.checkIn <= fTo) ||
+               (fFrom && !fTo  && b.checkIn >= fFrom) ||
+               (!fFrom && fTo  && b.checkIn <= fTo);
+    return ms && md && mm && mr;
   });
 }
 
 // ── Records Tab ────────────────────────────────────────────
-function filterByDate()  { recFDate=$('filterDate').value; recFMonth=''; $('filterMonth').value=''; renderRecords(); }
-function filterByMonth() { recFMonth=$('filterMonth').value; recFDate=''; $('filterDate').value=''; renderRecords(); }
-function clearFilters()  { recSearch=recFDate=recFMonth=''; $('searchInput').value=$('filterDate').value=$('filterMonth').value=''; renderRecords(); }
+function filterByDate()  { recFDate=$('filterDate').value; recFMonth=''; recFFrom=''; recFTo=''; $('filterMonth').value=''; $('filterFrom').value=''; $('filterTo').value=''; renderRecords(); }
+function filterByMonth() { recFMonth=$('filterMonth').value; recFDate=''; recFFrom=''; recFTo=''; $('filterDate').value=''; $('filterFrom').value=''; $('filterTo').value=''; renderRecords(); }
+function filterByRange() {
+  recFFrom  = $('filterFrom').value;
+  recFTo    = $('filterTo').value;
+  recFDate  = ''; recFMonth = '';
+  $('filterDate').value=''; $('filterMonth').value='';
+  if (recFFrom && recFTo && recFFrom > recFTo) { flash('From date must be before To date', false); return; }
+  renderRecords();
+}
+function clearFilters()  {
+  recSearch=recFDate=recFMonth=recFFrom=recFTo='';
+  $('searchInput').value=$('filterDate').value=$('filterMonth').value=$('filterFrom').value=$('filterTo').value='';
+  renderRecords();
+}
 
 function renderRecords() {
   recSearch = $('searchInput')?.value || recSearch;
-  const filtered = getFiltered(recSearch, recFDate, recFMonth);
+  const filtered = getFiltered(recSearch, recFDate, recFMonth, recFFrom, recFTo);
   const total    = myBookings().length;
   $('recordsCount').textContent = `${filtered.length} / ${total} bookings`;
-  $('clearFilterBtn').classList.toggle('hidden', !recSearch&&!recFDate&&!recFMonth);
+  const hasFilter = !!(recSearch||recFDate||recFMonth||recFFrom||recFTo);
+  $('clearFilterBtn').classList.toggle('hidden', !hasFilter);
   $('exportBtn').classList.toggle('hidden', filtered.length===0);
   const list = $('recordsList');
   if (filtered.length===0) {
@@ -248,16 +268,39 @@ function escHtml(str) {
 
 // ── Report Tab ─────────────────────────────────────────────
 function syncReportFilter(type) {
-  if (type==='date') { recFDate=$('reportDate').value; recFMonth=''; $('reportMonth').value=''; }
-  else               { recFMonth=$('reportMonth').value; recFDate=''; $('reportDate').value=''; }
+  if (type==='date') {
+    recFDate=$('reportDate').value; recFMonth=''; recFFrom=''; recFTo='';
+    $('reportMonth').value=''; $('reportFrom').value=''; $('reportTo').value='';
+  } else if (type==='month') {
+    recFMonth=$('reportMonth').value; recFDate=''; recFFrom=''; recFTo='';
+    $('reportDate').value=''; $('reportFrom').value=''; $('reportTo').value='';
+  } else if (type==='range') {
+    recFFrom=$('reportFrom').value; recFTo=$('reportTo').value;
+    recFDate=''; recFMonth='';
+    $('reportDate').value=''; $('reportMonth').value='';
+    if (recFFrom && recFTo && recFFrom > recFTo) { flash('From date must be before To date', false); return; }
+  }
   $('filterDate').value=recFDate; $('filterMonth').value=recFMonth;
+  $('filterFrom').value=recFFrom; $('filterTo').value=recFTo;
   updateReportStats();
 }
-function syncFiltersToReport() { $('reportDate').value=recFDate; $('reportMonth').value=recFMonth; }
-function clearReportFilter()   { recFDate=recFMonth=''; $('reportDate').value=$('reportMonth').value=$('filterDate').value=$('filterMonth').value=''; updateReportStats(); }
+
+function syncFiltersToReport() {
+  $('reportDate').value=recFDate;
+  $('reportMonth').value=recFMonth;
+  $('reportFrom').value=recFFrom;
+  $('reportTo').value=recFTo;
+}
+
+function clearReportFilter() {
+  recFDate=recFMonth=recFFrom=recFTo='';
+  $('reportDate').value=$('reportMonth').value=$('reportFrom').value=$('reportTo').value='';
+  $('filterDate').value=$('filterMonth').value=$('filterFrom').value=$('filterTo').value='';
+  updateReportStats();
+}
 
 function updateReportStats() {
-  const filtered = getFiltered('', recFDate, recFMonth);
+  const filtered = getFiltered('', recFDate, recFMonth, recFFrom, recFTo);
   $('statBookings').textContent = filtered.length;
   $('statRooms').textContent    = filtered.reduce((a,b)=>a+Number(b.rooms),0);
   $('statNights').textContent   = filtered.reduce((a,b)=>a+nights(b.checkIn,b.checkOut),0);
@@ -269,11 +312,21 @@ function updateReportStats() {
   preview.innerHTML = filtered.length>0 ? `<h3>Preview (${filtered.length} records):</h3>`+filtered.map((b,i)=>buildCard(b,i+1)).join('') : '';
 }
 
+// ── Get Active Filter Label ────────────────────────────────
+function getFilterLabel() {
+  if (recFFrom && recFTo)   return `Range: ${fmtDate(recFFrom)} to ${fmtDate(recFTo)}`;
+  if (recFFrom)             return `From: ${fmtDate(recFFrom)}`;
+  if (recFTo)               return `Till: ${fmtDate(recFTo)}`;
+  if (recFMonth)            return `Month: ${recFMonth}`;
+  if (recFDate)             return `Date: ${fmtDate(recFDate)}`;
+  return 'All Bookings';
+}
+
 // ── Build HTML Report ──────────────────────────────────────
 function buildReportHTML() {
-  const filtered    = getFiltered(recSearch, recFDate, recFMonth);
+  const filtered    = getFiltered(recSearch, recFDate, recFMonth, recFFrom, recFTo);
   const hotelName   = currentUser?.hotelName || 'Hotel';
-  const label       = recFMonth?`Month: ${recFMonth}`:recFDate?`Date: ${fmtDate(recFDate)}`:'All Bookings';
+  const label       = getFilterLabel();
   const totalRooms  = filtered.reduce((a,b)=>a+Number(b.rooms),0);
   const totalNights = filtered.reduce((a,b)=>a+nights(b.checkIn,b.checkOut),0);
   const generated   = new Date().toLocaleString('en-IN');
@@ -345,10 +398,10 @@ function buildReportHTML() {
 
 // ── Show Report Fullscreen ─────────────────────────────────
 function showReportScreen() {
-  const filtered = getFiltered(recSearch, recFDate, recFMonth);
+  const filtered = getFiltered(recSearch, recFDate, recFMonth, recFFrom, recFTo);
   if (filtered.length===0) return flash('No record found', false);
   const hotelName = currentUser?.hotelName||'Hotel';
-  const label     = recFMonth?`Month: ${recFMonth}`:recFDate?`Date: ${fmtDate(recFDate)}`:'All Bookings';
+  const label     = getFilterLabel();
   $('reportOverlayTitle').textContent = `${hotelName} - ${label}`;
   $('reportOverlayBody').innerHTML    = buildReportHTML();
   $('reportOverlay').style.display    = 'block';
@@ -370,7 +423,7 @@ function generateHotelPDF(filtered) {
   const rgb = (r,g,b) => `${(r/255).toFixed(3)} ${(g/255).toFixed(3)} ${(b/255).toFixed(3)}`;
 
   const PW=841, PH=595, ML=28, MR=28, MT=25, MB=25;
-  const tableW = PW-ML-MR; // 785
+  const tableW = PW-ML-MR;
 
   const cols = [
     {h:'#',          w:22 },
@@ -381,7 +434,7 @@ function generateHotelPDF(filtered) {
     {h:'Check-Out',  w:68 },
     {h:'Nights',     w:40 },
     {h:'Notes',      w:302},
-  ]; // sum = 785
+  ];
 
   const colX = [];
   let sx = ML+4;
@@ -391,7 +444,7 @@ function generateHotelPDF(filtered) {
   const rpp = Math.max(1, Math.floor((PH-MT-MB-HDR_H-THDR_H)/ROW_H));
 
   const hotelName   = san(currentUser?.hotelName||'Hotel');
-  const label       = recFMonth?`Month: ${recFMonth}`:recFDate?`Date: ${fmtDate(recFDate)}`:'All Bookings';
+  const label       = san(getFilterLabel());
   const totalRooms  = filtered.reduce((a,b)=>a+Number(b.rooms),0);
   const totalNights = filtered.reduce((a,b)=>a+nights(b.checkIn,b.checkOut),0);
   const genDate     = new Date().toLocaleDateString('en-IN');
@@ -507,7 +560,7 @@ function generateHotelPDF(filtered) {
 
 // ── Download PDF button ────────────────────────────────────
 function downloadPDF() {
-  const filtered = getFiltered(recSearch, recFDate, recFMonth);
+  const filtered = getFiltered(recSearch, recFDate, recFMonth, recFFrom, recFTo);
   if (!filtered.length) return flash('No record found', false);
 
   const loading = $('pdfLoading');
@@ -523,7 +576,7 @@ function downloadPDF() {
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
       const hn   = (currentUser?.hotelName||'Hotel').replace(/[^a-zA-Z0-9]/g,'_');
-      const lb   = (recFMonth||recFDate||'All').replace(/[^a-zA-Z0-9-]/g,'_');
+      const lb   = (recFFrom&&recFTo?`${recFFrom}_to_${recFTo}`:recFMonth||recFDate||'All').replace(/[^a-zA-Z0-9-]/g,'_');
       a.href     = url;
       a.download = `${hn}_${lb}_Report.pdf`;
       document.body.appendChild(a);
@@ -543,11 +596,11 @@ function downloadPDF() {
 
 // ── Share Report ───────────────────────────────────────────
 function shareReport() {
-  const filtered = getFiltered(recSearch, recFDate, recFMonth);
+  const filtered = getFiltered(recSearch, recFDate, recFMonth, recFFrom, recFTo);
   if (!filtered.length) return flash('No record', false);
 
   const hotelName   = currentUser?.hotelName||'Hotel';
-  const label       = recFMonth?`Month: ${recFMonth}`:recFDate?`Date: ${fmtDate(recFDate)}`:'All bookings';
+  const label       = getFilterLabel();
   const totalRooms  = filtered.reduce((a,b)=>a+Number(b.rooms),0);
   const totalNights = filtered.reduce((a,b)=>a+nights(b.checkIn,b.checkOut),0);
 
@@ -586,7 +639,6 @@ function shareReport() {
 
 // ── DOMContentLoaded ───────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Auto-login — app bnd karo vapas kholo, andar rahoge!
   const savedUser = getSavedSession();
   if (savedUser) loginUser(savedUser);
 
